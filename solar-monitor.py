@@ -1,52 +1,91 @@
 #!/usr/bin/python
 
+import paho.mqtt.client as mqtt
+import json
 import os
+import renogymodbus
+import socket
+import ssl
 import time
-import sqlite3
-from subprocess import PIPE, Popen
-from solarshed.controllers.renogy_rover import RenogyRover
+from renogymodbus import RenogyChargeController
 
-def create_connection(db_file):
-    """ create a database connection to the SQLite database
-        specified by db_file
-    :param db_file: database file name
-    :return: Connection object or None
-    """
+BATTERY_VOLTAGE_UID = 'hive_solar_battery_voltage'
+LOAD_POWER_UID = 'hive_solar_load_power'
+SOLAR_POWER_UID = 'hive_solar_solar_power'
+TOPIC_PREFIX = 'homeassistant/sensor/'
 
-    conn = None
+
+# create a connection callback function
+def on_connect(client, userdata, flags, result, properties=None):
+    if (result == 0):
+        # create a config entry for the hive solar battery voltage
+        config = {}
+        config['unique_id'] = BATTERY_VOLTAGE_UID
+        config['device_class'] = 'voltage'
+        config['icon'] = 'mdi:lightning-bolt-circle'
+        config['name'] = BATTERY_VOLTAGE_UID
+        config['state_class'] = 'measurement'
+        config['state_topic'] = TOPIC_PREFIX + BATTERY_VOLTAGE_UID + '/state'
+        config['suggested_display_precision'] = 1
+        config['unit_of_measurement'] = 'V'
+
+        client.publish(TOPIC_PREFIX + BATTERY_VOLTAGE_UID + '/config', json.dumps(config), retain=True, properties=None)
+
+        # create a config entry for hive solar load
+        config['unique_id'] = LOAD_POWER_UID
+        config['device_class'] = 'power'
+        config['icon'] = 'mdi:meter-electric-outline'
+        config['name'] = LOAD_POWER_UID
+        config['state_topic'] = TOPIC_PREFIX + LOAD_POWER_UID + '/state'
+        config['suggested_display_precision'] = 0
+        config['unit_of_measurement'] = 'W'
+
+        client.publish(TOPIC_PREFIX + LOAD_POWER_UID + '/config', json.dumps(config), retain=True, properties=None)
+
+        # create a config entry for solar production
+        config['unique_id'] = SOLAR_POWER_UID
+        config['device_class'] = 'power'
+        config['icon'] = 'mdi:solar-power'
+        config['name'] = SOLAR_POWER_UID
+        config['state_topic'] = TOPIC_PREFIX + SOLAR_POWER_UID + '/state'
+        config['suggested_display_precision'] = 0
+        config['unit_of_measurement'] = 'W'
+
+        client.publish(TOPIC_PREFIX + SOLAR_POWER_UID + '/config', json.dumps(config), retain=True, properties=None)
+
+
+# script variabled
+loop_timer = os.getenv("LOOP_TIMER", default=30)
+mqtt_broker = os.getenv("MQTT_BROKER", default='mqtt-01')
+mqtt_port = os.getenv("MQTT_PORT", default=1883)
+mqtt_ssl = os.getenv("MQTT_SSL", default='no')
+
+# create a mqtt client
+client = mqtt.Client(client_id=socket.getfqdn(), transport='tcp', protocol=mqtt.MQTTv5)
+client.on_connect = on_connect
+
+if mqtt_ssl.lower() == 'yes':
+    client.tls_set(certfile=None, keyfile=None, cert_reqs=ssl.CERT_REQUIRED)
+
+client.connect(mqtt_broker, int(mqtt_port), properties=None)
+client.loop_start()
+
+controller = RenogyChargeController("/dev/ttyUSB0", 1)
+
+while True:
     try:
-        conn = sqlite3.connect(db_file)        
-    except Error as e:
-        print(e)
+        # read the current controller state
+        battery_voltage = controller.get_battery_voltage()
+        load_power = controller.get_load_power()
+        solar_power = controller.get_solar_power()
 
-    return conn
+        # publish the data to the mqtt server
+        client.publish(TOPIC_PREFIX + BATTERY_VOLTAGE_UID + '/state', battery_voltage)
+        client.publish(TOPIC_PREFIX + LOAD_POWER_UID + '/state', load_power)
+        client.publish(TOPIC_PREFIX + SOLAR_POWER_UID+ '/state', solar_power)
 
-def create_table(conn, create_table_sql):
-    """ create a table from the create_table_sql statement
-    :param conn: Connection object
-    :param create_table_sql: a CREATE TABLE statement
-    :return:
-    """
-    
-    try:
-        c = conn.cursor()
-        c.execute(create_table_sql)
-    except Error as e:
-        print(e)
-
-def main():
-
-    database = r"C:\temp\persistence.db"
-    sql_create_solar_table = ( 
-        "CREATE TABLE IF NOT EXISTS solar ( "
-        "dateTime datetime PRIMARY KEY "
-        ")"
-    )
-
-    conn = create_connection(database)
-    create_table(conn, sql_create_solar_table)
-
-if __name__ == '__main__':
-    main()
-
-                                  
+        time.sleep(int(loop_timer))
+    except:
+        client.loop_stop()
+        client.disconnect()
+        break
