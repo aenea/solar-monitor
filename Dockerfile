@@ -4,7 +4,7 @@ RUN pip install --upgrade pip && \
     pip install --no-cache-dir paho-mqtt && \
     pip install --no-cache-dir renogymodbus && \
     rm -rf /root/.cache/pip && \
-    mkdir -p /scripts
+    mkdir -p /scripts && \
     chmod +x /scripts/startup.sh
 
 COPY startup.sh /scripts/startup.sh

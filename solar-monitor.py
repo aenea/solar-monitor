@@ -56,7 +56,7 @@ def on_connect(client, userdata, flags, result, properties=None):
 
 # script variabled
 loop_timer = os.getenv("LOOP_TIMER", default=30)
-mqtt_broker = os.getenv("MQTT_BROKER", default='mqtt-01')
+mqtt_broker = os.getenv("MQTT_BROKER", default='mqtt')
 mqtt_port = os.getenv("MQTT_PORT", default=1883)
 mqtt_ssl = os.getenv("MQTT_SSL", default='no')
 
