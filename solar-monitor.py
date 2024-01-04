@@ -14,7 +14,7 @@ LOAD_POWER_UID = 'hive_solar_load_power'
 SOLAR_POWER_UID = 'hive_solar_solar_power'
 TOPIC_PREFIX = 'homeassistant/sensor/'
 
-
+# test
 # create a connection callback function
 def on_connect(client, userdata, flags, result, properties=None):
     if (result == 0):
