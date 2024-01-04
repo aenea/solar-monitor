@@ -1,5 +1,5 @@
 FROM python:3-slim-bullseye
-#test
+
 COPY startup.sh /scripts/startup.sh
 COPY solar-monitor.py /scripts/solar-monitor.py
 
