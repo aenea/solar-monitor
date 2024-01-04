@@ -14,7 +14,7 @@ LOAD_POWER_UID = 'hive_solar_load_power'
 SOLAR_POWER_UID = 'hive_solar_solar_power'
 TOPIC_PREFIX = 'homeassistant/sensor/'
 
-# test
+
 # create a connection callback function
 def on_connect(client, userdata, flags, result, properties=None):
     if (result == 0):
@@ -27,7 +27,7 @@ def on_connect(client, userdata, flags, result, properties=None):
         config['state_class'] = 'measurement'
         config['state_topic'] = TOPIC_PREFIX + BATTERY_VOLTAGE_UID + '/state'
         config['suggested_display_precision'] = 1
-        config['unit_of_measurement'] = 'V'
+        config['unit_of_measurement'] = 'Vh'
 
         client.publish(TOPIC_PREFIX + BATTERY_VOLTAGE_UID + '/config', json.dumps(config), retain=True, properties=None)
 
