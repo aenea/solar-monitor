@@ -27,7 +27,7 @@ def on_connect(client, userdata, flags, result, properties=None):
         config['state_class'] = 'measurement'
         config['state_topic'] = TOPIC_PREFIX + BATTERY_VOLTAGE_UID + '/state'
         config['suggested_display_precision'] = 1
-        config['unit_of_measurement'] = 'Vh'
+        config['unit_of_measurement'] = 'V'
 
         client.publish(TOPIC_PREFIX + BATTERY_VOLTAGE_UID + '/config', json.dumps(config), retain=True, properties=None)
 
