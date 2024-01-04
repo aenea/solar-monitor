@@ -38,7 +38,7 @@ def on_connect(client, userdata, flags, result, properties=None):
         config['name'] = LOAD_POWER_UID
         config['state_topic'] = TOPIC_PREFIX + LOAD_POWER_UID + '/state'
         config['suggested_display_precision'] = 0
-        config['unit_of_measurement'] = 'W'
+        config['unit_of_measurement'] = 'Wh'
 
         client.publish(TOPIC_PREFIX + LOAD_POWER_UID + '/config', json.dumps(config), retain=True, properties=None)
 
@@ -49,7 +49,7 @@ def on_connect(client, userdata, flags, result, properties=None):
         config['name'] = SOLAR_POWER_UID
         config['state_topic'] = TOPIC_PREFIX + SOLAR_POWER_UID + '/state'
         config['suggested_display_precision'] = 0
-        config['unit_of_measurement'] = 'W'
+        config['unit_of_measurement'] = 'Wh'
 
         client.publish(TOPIC_PREFIX + SOLAR_POWER_UID + '/config', json.dumps(config), retain=True, properties=None)
 
