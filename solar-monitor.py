@@ -59,10 +59,13 @@ loop_timer = os.getenv("LOOP_TIMER", default=30)
 mqtt_broker = os.getenv("MQTT_BROKER", default='mqtt')
 mqtt_port = os.getenv("MQTT_PORT", default=1883)
 mqtt_ssl = os.getenv("MQTT_SSL", default='no')
+mqtt_user = os.getenv("MQTT_USERNAME", default=None)
+mqtt_pass = os.getenv("MQTT_PASSWORD", default=None)
 
 # create a mqtt client
 client = mqtt.Client(client_id=socket.getfqdn(), transport='tcp', protocol=mqtt.MQTTv5)
 client.on_connect = on_connect
+client.username_pw_set(username=mqtt_user, password=mqtt_pass)
 
 if mqtt_ssl.lower() == 'yes':
     client.tls_set(certfile=None, keyfile=None, cert_reqs=ssl.CERT_REQUIRED)
